@@ -2,16 +2,22 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
+interface DoneGoneSettings {
+	deletion_trigger: string;
+	archive_trigger: string;
+	archive_filepath: string;
+	bottom_trigger: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+const DEFAULT_SETTINGS: DoneGoneSettings = {
+	deletion_trigger: '%%done_del%%',
+	archive_trigger: '%%done_log%%',
+	archive_filepath: 'archive.md',
+	bottom_trigger: '%%done_end%%',
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class DoneGonePlugin extends Plugin {
+	settings: DoneGoneSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -66,7 +72,7 @@ export default class MyPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new DoneGoneSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -97,41 +103,83 @@ class SampleModal extends Modal {
 	}
 
 	onOpen() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.setText('Woah!');
 	}
 
 	onClose() {
-		const {contentEl} = this;
+		const { contentEl } = this;
 		contentEl.empty();
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class DoneGoneSettingTab extends PluginSettingTab {
+	plugin: DoneGonePlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	public defaultDeletionTrigger = "%%done_del%%";
+	public defaultArchiveTrigger = "%%done_log%%";
+	public defaultArchiveFilepath = "logfile.md";
+	public defaultBottomTrigger = "%%done_move%%";
+
+	constructor(app: App, plugin: DoneGonePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		containerEl.createEl('h2', { text: 'Done Gone plugin settings' });
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
+			.setName('Deletion trigger')
+			.setDesc('Text to trigger deletion of completed recurring Task instance')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder(this.defaultDeletionTrigger)
+				.setValue(this.plugin.settings.deletion_trigger)
 				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
+					console.log('deletion_trigger: ' + value);
+					this.plugin.settings.deletion_trigger = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Archive trigger')
+			.setDesc('Text to trigger archiving of completed recurring Task instance')
+			.addText(text => text
+				.setPlaceholder(this.defaultArchiveTrigger)
+				.setValue(this.plugin.settings.archive_trigger)
+				.onChange(async (value) => {
+					console.log('archive_trigger: ' + value);
+					this.plugin.settings.archive_trigger = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Archive file')
+			.setDesc('Relative filepath to archive file')
+			.addText(text => text
+				.setPlaceholder(this.defaultArchiveFilepath)
+				.setValue(this.plugin.settings.archive_filepath)
+				.onChange(async (value) => {
+					console.log('archive_filepath: ' + value);
+					this.plugin.settings.archive_filepath = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('"Move to end of file" trigger')
+			.setDesc('Text to trigger moving completed recurring Task instance to bottom of note')
+			.addText(text => text
+				.setPlaceholder(this.defaultBottomTrigger)
+				.setValue(this.plugin.settings.bottom_trigger)
+				.onChange(async (value) => {
+					console.log('bottom_trigger: ' + value);
+					this.plugin.settings.bottom_trigger = value;
+					await this.plugin.saveSettings();
+				}));
+
 	}
 }
