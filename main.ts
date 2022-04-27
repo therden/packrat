@@ -5,16 +5,16 @@ import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingT
 
 interface PaCkRaTSettings {
 	deletion_signifier: string;
+	bottom_signifier: string;
 	archive_signifier: string;
 	archive_filepath: string;
-	bottom_signifier: string;
 }
 
 const DEFAULT_SETTINGS: PaCkRaTSettings = {
 	deletion_signifier: '%%done_del%%',
+	bottom_signifier: '%%done_end%%',
 	archive_signifier: '%%done_log%%',
 	archive_filepath: 'archive.md',
-	bottom_signifier: '%%done_end%%',
 }
 
 export default class PaCkRaTPlugin extends Plugin {
@@ -95,14 +95,14 @@ export default class PaCkRaTPlugin extends Plugin {
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new PaCkRaTSettingTab(this.app, this));
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
+		// // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
+		// // Using this function will automatically remove the event listener when this plugin is disabled.
+		// this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+		// 	console.log('click', evt);
+		// });
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		// // When registering intervals, this function will automatically clear the interval when the plugin is disabled.
+		// this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -138,9 +138,9 @@ class PaCkRaTSettingTab extends PluginSettingTab {
 	plugin: PaCkRaTPlugin;
 
 	public defaultDeletionsignifier = "%%done_del%%";
+	public defaultBottomsignifier = "%%done_move%%";
 	public defaultArchivesignifier = "%%done_log%%";
 	public defaultArchiveFilepath = "logfile.md";
-	public defaultBottomsignifier = "%%done_move%%";
 
 	constructor(app: App, plugin: PaCkRaTPlugin) {
 		super(app, plugin);
@@ -167,6 +167,18 @@ class PaCkRaTSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
+			.setName('"Move to end of file" signifier')
+			.setDesc('Text to signifier moving completed recurring Task instance to bottom of note')
+			.addText(text => text
+				.setPlaceholder(this.defaultBottomsignifier)
+				.setValue(this.plugin.settings.bottom_signifier)
+				.onChange(async (value) => {
+					console.log('bottom_signifier: ' + value);
+					this.plugin.settings.bottom_signifier = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
 			.setName('Archive signifier')
 			.setDesc('Text to signifier archiving of completed recurring Task instance')
 			.addText(text => text
@@ -187,18 +199,6 @@ class PaCkRaTSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					console.log('archive_filepath: ' + value);
 					this.plugin.settings.archive_filepath = value;
-					await this.plugin.saveSettings();
-				}));
-
-		new Setting(containerEl)
-			.setName('"Move to end of file" signifier')
-			.setDesc('Text to signifier moving completed recurring Task instance to bottom of note')
-			.addText(text => text
-				.setPlaceholder(this.defaultBottomsignifier)
-				.setValue(this.plugin.settings.bottom_signifier)
-				.onChange(async (value) => {
-					console.log('bottom_signifier: ' + value);
-					this.plugin.settings.bottom_signifier = value;
 					await this.plugin.saveSettings();
 				}));
 
