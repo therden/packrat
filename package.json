@@ -1,7 +1,7 @@
 {
-	"name": "Done Gone Plugin",
+	"name": "Packrat Plugin",
 	"version": "0.0.1",
-	"description": "Process completed instances of recurring items created by the Tasks plugin for Obsidian.",
+	"description": "Process completed recurring Tasks",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -10,7 +10,7 @@
 	},
 	"keywords": [
 		"Obsidian.md",
-		"Tasks",
+		"Tasks plugin",
 		"completed recurring tasks"
 	],
 	"author": "therden",

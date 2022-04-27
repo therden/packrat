@@ -1,16 +1,17 @@
 // import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { test } from 'scratch';
 
 // Remember to rename these classes and interfaces!
 
-interface PackratSettings {
+export interface PackratSettings {
 	deletion_signifier: string;
 	bottom_signifier: string;
 	archive_signifier: string;
 	archive_filepath: string;
 }
 
-const DEFAULT_SETTINGS: PackratSettings = {
+export const DEFAULT_SETTINGS: PackratSettings = {
 	deletion_signifier: '%%done_del%%',
 	bottom_signifier: '%%done_end%%',
 	archive_signifier: '%%done_log%%',
@@ -21,11 +22,13 @@ export default class PackratPlugin extends Plugin {
 	settings: PackratSettings;
 
 	async onload() {
+		console.log('Loading Packrat')
+
 		await this.loadSettings();
 
 		this.addCommand({
 			id: 'tasks-run-packrat',
-			name: 'Tasks - process completed instances of recurring tasks within active note',
+			name: 'Process completed recurring Tasks in active note',
 
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
@@ -34,7 +37,8 @@ export default class PackratPlugin extends Plugin {
 				if (!activeFile || activeFile.extension !== "md") {
 				} else {
 					if (!checking) {
-						new Notice('Packrat plugin is Go!');
+						// new Notice('Packrat plugin is Go!');
+						this.averageFileLength();
 					}
 					// This command will only show up in Command Palette when the check function returns true
 					return true;
@@ -44,11 +48,10 @@ export default class PackratPlugin extends Plugin {
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new PackratSettingTab(this.app, this));
-
 	}
 
 	onunload() {
-
+		console.log('Unloading Packrat')
 	}
 
 	async loadSettings() {
@@ -57,6 +60,22 @@ export default class PackratPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async averageFileLength(): Promise<number> {
+		const { vault } = this.app;
+
+		const fileContents: string[] = await Promise.all(
+			vault.getMarkdownFiles().map((file) => vault.read(file))
+		);
+
+		let totalLength = 0;
+		fileContents.forEach((content) => {
+			totalLength += content.length;
+		});
+
+		const avgFileLength = totalLength / fileContents.length;
+		new Notice(`The average file length is ${avgFileLength} characters.`);
 	}
 }
 
