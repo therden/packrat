@@ -3,22 +3,22 @@ import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingT
 
 // Remember to rename these classes and interfaces!
 
-interface PaCkRaTSettings {
+interface PackratSettings {
 	deletion_signifier: string;
 	bottom_signifier: string;
 	archive_signifier: string;
 	archive_filepath: string;
 }
 
-const DEFAULT_SETTINGS: PaCkRaTSettings = {
+const DEFAULT_SETTINGS: PackratSettings = {
 	deletion_signifier: '%%done_del%%',
 	bottom_signifier: '%%done_end%%',
 	archive_signifier: '%%done_log%%',
 	archive_filepath: 'archive.md',
 }
 
-export default class PaCkRaTPlugin extends Plugin {
-	settings: PaCkRaTSettings;
+export default class PackratPlugin extends Plugin {
+	settings: PackratSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -79,12 +79,12 @@ export default class PaCkRaTPlugin extends Plugin {
 
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
+				// Packrat only works on an open markdown (.md) note file
 				const activeFile = this.app.workspace.getActiveFile();
-				// PaCkRaT only works on an open markdown (.md) note file
 				if (!activeFile || activeFile.extension !== "md") {
 				} else {
 					if (!checking) {
-						new Notice('PaCkRaT plugin is Go!');
+						new Notice('Packrat plugin is Go!');
 					}
 					// This command will only show up in Command Palette when the check function returns true
 					return true;
@@ -93,7 +93,7 @@ export default class PaCkRaTPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new PaCkRaTSettingTab(this.app, this));
+		this.addSettingTab(new PackratSettingTab(this.app, this));
 
 		// // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// // Using this function will automatically remove the event listener when this plugin is disabled.
@@ -122,7 +122,7 @@ export default class PaCkRaTPlugin extends Plugin {
 // 	constructor(app: App) {
 // 		super(app);
 // 	}
-
+// 
 // 	onOpen() {
 // 		const { contentEl } = this;
 // 		contentEl.setText('Woah!');
@@ -134,15 +134,15 @@ export default class PaCkRaTPlugin extends Plugin {
 // 	}
 // }
 
-class PaCkRaTSettingTab extends PluginSettingTab {
-	plugin: PaCkRaTPlugin;
+class PackratSettingTab extends PluginSettingTab {
+	plugin: PackratPlugin;
 
 	public defaultDeletionsignifier = "%%done_del%%";
 	public defaultBottomsignifier = "%%done_move%%";
 	public defaultArchivesignifier = "%%done_log%%";
 	public defaultArchiveFilepath = "logfile.md";
 
-	constructor(app: App, plugin: PaCkRaTPlugin) {
+	constructor(app: App, plugin: PackratPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
