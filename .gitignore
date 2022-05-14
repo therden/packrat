@@ -5,9 +5,9 @@ scratch.ts
 
 # other cruft
 .editorconfig
-.editorignore
+.eslintignore
 .eslintrc
-.nmprc
+.npmrc
 esbuild.config.mjs
 package-lock.json
 tsconfig.json
