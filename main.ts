@@ -72,10 +72,10 @@ export default class PackratPlugin extends Plugin {
 		let movedTaskCount = 0;
 		let archivedTaskCount = 0;
 		let thisLine = "";
-		let writebackLines = "";
-		let appendLines = "";
-		let archiveLines = "";
-		let results = "";
+		let writebackLines = [];
+		let appendLines = [];
+		let archiveLines = [];
+		let results = [];
 
 		let fileContents = await vault.read(activeFile);
 		fileContents = fileContents.split("\n");
@@ -104,24 +104,37 @@ export default class PackratPlugin extends Plugin {
 					}
 					// test for 'archive' signifier
 					if (0 < thisLine.indexOf(archiveSignifier)) {
+						archiveLines.push(thisLine);
 						archivedTaskCount += 1;
 						var msg = ("Archive " + thisLine);
 						console.log(msg);
 					}
 					// test for 'move' signifier
 					if (0 < thisLine.indexOf(bottomSignifier)) {
+						appendLines.push(thisLine);
 						movedTaskCount += 1;
 						var msg = ("Move " + thisLine);
 						console.log(msg);
 					}
 				}
 			} else {
-				// archivelines += thisLine;
+				writebackLines.push(thisLine);
 			}
 		}
 
-		// const targetFile = "archive.md"
-		// vault.modify(targetFile, archiveLines)
+		const archiveFile = "./archive.md"
+		// if () {
+
+		// }
+		// let archiveFileContents = await vault.read(archiveFile);
+		// // let archiveFileContents = archiveFileContents.split("\n");
+		// archiveFileContents = archiveFileContents.concat(archiveLines);
+		// vault.modify(archiveFile, archiveFileContents.join("\n"));
+
+		// appendLines.push("Line to add to bottom of file -- testing only");
+		results = writebackLines.concat(appendLines);
+		vault.modify(activeFile, results.join("\n"));
+
 
 		const noticeText = `${deletedTaskCount} tasks deleted\n${movedTaskCount} tasks moved to end of note\n${archivedTaskCount} tasks archived`;
 		new Notice(noticeText);
