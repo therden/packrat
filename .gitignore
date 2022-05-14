@@ -1,3 +1,19 @@
+# misc
+ActiveFile.ts
+packrat.ts
+scratch.ts
+
+# other cruft
+.editorconfig
+.editorignore
+.eslintrc
+.nmprc
+esbuild.config.mjs
+package-lock.json
+tsconfig.json
+version-bump.mjs
+versions.json
+
 # vscode
 .vscode 
 
