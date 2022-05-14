@@ -1,5 +1,5 @@
 // import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, finishRenderMath } from 'obsidian';
 import { test } from 'scratch';
 
 // Remember to rename these classes and interfaces!
@@ -33,12 +33,15 @@ export default class PackratPlugin extends Plugin {
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
 				// Packrat only works on an open markdown (.md) note file
-				const activeFile = this.app.workspace.getActiveFile();
+				const { workspace } = this.app;
+				// const activeView = workspace.getActiveViewOfType(MarkdownView);
+				const activeFile = workspace.getActiveFile();
 				if (!activeFile || activeFile.extension !== "md") {
 				} else {
 					if (!checking) {
 						// new Notice('Packrat plugin is Go!');
-						this.averageFileLength();
+						// this.averageFileLength();  // test example
+						this.ProcessCompletedRecurringTasks(activeFile);
 					}
 					// This command will only show up in Command Palette when the check function returns true
 					return true;
@@ -62,7 +65,65 @@ export default class PackratPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async averageFileLength(): Promise<number> {
+	async ProcessCompletedRecurringTasks(activeFile): Promise<void> {
+		const { vault } = this.app;
+
+		let deletedTaskCount = 0;
+		let movedTaskCount = 0;
+		let archivedTaskCount = 0;
+		let thisLine = "";
+		let writebackLines = "";
+		let appendLines = "";
+		let archiveLines = "";
+		let results = "";
+
+		let fileContents = await vault.read(activeFile);
+		fileContents = fileContents.split("\n");
+		const rruleSignifier = "🔁".normalize()
+		const deleteSignifier = "%%done_del%%"
+		const archiveSignifier = "%%done_log%%"
+		const bottomSignifier = "%%done_move%%"
+		// new Notice(fileContents[0, 2, 4]);
+
+		for (let i = 0; i < fileContents.length; i++) {
+			thisLine = fileContents[i];
+			let firstFive = thisLine.substring(0, 5).toUpperCase()
+			// test if this is a completed task
+			if (firstFive == "- [X]") {
+				// new Notice("completed: " + thisLine)
+				// test if line includes Tasks' recurrence signifier 🔁
+				if (0 < thisLine.indexOf(rruleSignifier)) {
+					// var msg = ("completed and recurring: " + thisLine);
+					// console.log(msg);
+					// new Notice(msg);
+					// test for 'delete' signifier
+					if (0 < thisLine.indexOf(deleteSignifier)) {
+						var msg = ("Delete " + thisLine);
+						console.log(msg);
+					}
+					// test for 'archive' signifier
+					if (0 < thisLine.indexOf(archiveSignifier)) {
+						var msg = ("Archive " + thisLine);
+						console.log(msg);
+					}
+					// test for 'move' signifier
+					if (0 < thisLine.indexOf(bottomSignifier)) {
+						var msg = ("Move " + thisLine);
+						console.log(msg);
+					}
+				}
+			} else {
+				// archivelines += thisLine;
+			}
+		}
+
+		// const targetFile = "archive.md"
+		// vault.modify(targetFile, archiveLines)
+		const noticeText = `${deletedTaskCount} tasks deleted\n${movedTaskCount} tasks moved to end of note\n${archivedTaskCount} tasks archived`;
+		new Notice(noticeText);
+	}
+
+	async averageFileLength(): Promise<void> {  // test example
 		const { vault } = this.app;
 
 		const fileContents: string[] = await Promise.all(
@@ -74,6 +135,7 @@ export default class PackratPlugin extends Plugin {
 			totalLength += content.length;
 		});
 
+		// return totalLength / fileContents.length;
 		const avgFileLength = totalLength / fileContents.length;
 		new Notice(`The average file length is ${avgFileLength} characters.`);
 	}
