@@ -98,16 +98,19 @@ export default class PackratPlugin extends Plugin {
 					// new Notice(msg);
 					// test for 'delete' signifier
 					if (0 < thisLine.indexOf(deleteSignifier)) {
+						deletedTaskCount += 1;
 						var msg = ("Delete " + thisLine);
 						console.log(msg);
 					}
 					// test for 'archive' signifier
 					if (0 < thisLine.indexOf(archiveSignifier)) {
+						archivedTaskCount += 1;
 						var msg = ("Archive " + thisLine);
 						console.log(msg);
 					}
 					// test for 'move' signifier
 					if (0 < thisLine.indexOf(bottomSignifier)) {
+						movedTaskCount += 1;
 						var msg = ("Move " + thisLine);
 						console.log(msg);
 					}
@@ -119,6 +122,7 @@ export default class PackratPlugin extends Plugin {
 
 		// const targetFile = "archive.md"
 		// vault.modify(targetFile, archiveLines)
+
 		const noticeText = `${deletedTaskCount} tasks deleted\n${movedTaskCount} tasks moved to end of note\n${archivedTaskCount} tasks archived`;
 		new Notice(noticeText);
 	}
