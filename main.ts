@@ -1,4 +1,4 @@
-import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, finishRenderMath } from 'obsidian';
+import { App, TFile, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 export interface PackratSettings {
 	deletion_signifier: string;
@@ -18,16 +18,19 @@ export default class PackratPlugin extends Plugin {
 	settings: PackratSettings;
 
 	async onload() {
-		console.log('Loading Packrat')
+		console.log('Packrat: Loading...')
 
 		await this.loadSettings();
 
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new PackratSettingTab(this.app, this));
+
+		// This adds a Command to the Command Palette				
 		this.addCommand({
 			id: 'tasks-run-packrat',
-			name: 'Process completed recurring Tasks in the active note',
+			name: 'Process completed recurring Tasks within the active note',
 
 			checkCallback: (checking: boolean) => {
-				// Conditions to check
 				// Packrat only works on an open markdown (.md) note file
 				const { workspace } = this.app;
 				const activeFile = workspace.getActiveFile();
@@ -36,18 +39,15 @@ export default class PackratPlugin extends Plugin {
 					if (!checking) {
 						this.ProcessCompletedRecurringTasks(activeFile);
 					}
-					// This command will only show up in Command Palette when the check function returns true
+					// Command Palette will only display this command when the check function returns true
 					return true;
 				}
 			}
 		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new PackratSettingTab(this.app, this));
 	}
 
 	onunload() {
-		console.log('Unloading Packrat')
+		console.log('Packrat: Unloading...')
 	}
 
 	async loadSettings() {
@@ -62,10 +62,6 @@ export default class PackratPlugin extends Plugin {
 		const { vault } = this.app;
 
 		const rruleSignifier = "🔁".normalize();
-		// const deleteSignifier = "%%done_del%%";
-		// const archiveSignifier = "%%done_log%%";
-		// const bottomSignifier = "%%done_move%%";
-		// const archiveFilename = "archive.md";
 		const deleteSignifier = this.settings.deletion_signifier;
 		const archiveSignifier = this.settings.archive_signifier;
 		const bottomSignifier = this.settings.bottom_signifier;
@@ -94,24 +90,18 @@ export default class PackratPlugin extends Plugin {
 					if (0 < thisLine.indexOf(deleteSignifier)) {
 						deletedTaskCount += 1;
 						continue;
-						// var msg = ("Delete " + thisLine);
-						// console.log(msg);
 					}
 					// test for 'archive' signifier
 					if (0 < thisLine.indexOf(archiveSignifier)) {
 						archiveLines.push(thisLine);
 						archivedTaskCount += 1;
 						continue;
-						// var msg = ("Archive " + thisLine);
-						// console.log(msg);
 					}
 					// test for 'move' signifier
 					if (0 < thisLine.indexOf(bottomSignifier)) {
 						appendLines.push(thisLine);
 						movedTaskCount += 1;
 						continue;
-						// var msg = ("Move " + thisLine);
-						// console.log(msg);
 					}
 					// no matching signifier
 					writebackLines.push(thisLine);
@@ -121,6 +111,7 @@ export default class PackratPlugin extends Plugin {
 			}
 		}
 
+		// write designated Tasks to archive file
 		const archiveFile =
 			vault.getAbstractFileByPath(archiveFilename) ||
 			(await vault.create(archiveFilename, ""));
@@ -134,29 +125,14 @@ export default class PackratPlugin extends Plugin {
 			vault.modify(archiveFile, archiveFileContents.join("\n"));
 		}
 
+		// rewrite active Note file with designated Tasks at bottom and Deleted and Archived tasks removed
 		results = writebackLines.concat(appendLines);
 		vault.modify(activeFile, results.join("\n"));
-
-
-		const noticeText = `${deletedTaskCount} tasks deleted\n${movedTaskCount} tasks moved to end of note\n${archivedTaskCount} tasks archived`;
+		var tdMsg = `${deletedTaskCount} tasks deleted\n`;
+		var tmMsg = `${movedTaskCount} tasks moved to end of note\n`;
+		var taMsg = `${archivedTaskCount} tasks archived\n`;
+		const noticeText = tdMsg + tmMsg + taMsg;
 		new Notice(noticeText);
-	}
-
-	async averageFileLength(): Promise<void> {  // test example
-		const { vault } = this.app;
-
-		const fileContents: string[] = await Promise.all(
-			vault.getMarkdownFiles().map((file) => vault.read(file))
-		);
-
-		let totalLength = 0;
-		fileContents.forEach((content) => {
-			totalLength += content.length;
-		});
-
-		// return totalLength / fileContents.length;
-		const avgFileLength = totalLength / fileContents.length;
-		new Notice(`The average file length is ${avgFileLength} characters.`);
 	}
 }
 
@@ -175,14 +151,12 @@ class PackratSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
-
 		containerEl.empty();
-
 		containerEl.createEl('h2', { text: 'Done Gone plugin settings' });
 
 		new Setting(containerEl)
 			.setName('Deletion signifier')
-			.setDesc('Text to signifier deletion of completed recurring Task instance')
+			.setDesc('Text to trigger deletion of completed recurring Task instance')
 			.addText(text => text
 				.setPlaceholder(this.defaultDeletionsignifier)
 				.setValue(this.plugin.settings.deletion_signifier)
@@ -194,7 +168,7 @@ class PackratSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('"Move to end of file" signifier')
-			.setDesc('Text to signifier moving completed recurring Task instance to bottom of note')
+			.setDesc('Text to trigger moving completed recurring Task instance to bottom of Active note')
 			.addText(text => text
 				.setPlaceholder(this.defaultBottomsignifier)
 				.setValue(this.plugin.settings.bottom_signifier)
@@ -206,7 +180,7 @@ class PackratSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Archive signifier')
-			.setDesc('Text to signifier archiving of completed recurring Task instance')
+			.setDesc('Text to trigger moving completed recurring Task instance to archive note')
 			.addText(text => text
 				.setPlaceholder(this.defaultArchivesignifier)
 				.setValue(this.plugin.settings.archive_signifier)
@@ -218,7 +192,7 @@ class PackratSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Archive file')
-			.setDesc('Relative filepath to archive file')
+			.setDesc('Relative filepath to archive file (include ".md" extension)')
 			.addText(text => text
 				.setPlaceholder(this.defaultArchiveFilepath)
 				.setValue(this.plugin.settings.archive_filepath)
