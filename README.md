@@ -2,7 +2,7 @@
 
 ![](./packrat.gif)
 
-This plugin for [Obsidian.md](https://obsidian.md/) adds functionality to Martin Schenk's excellent [Obsidian Tasks](https://github.com/schemar/obsidian-tasks) plugin.
+This plugin for [Obsidian.md](https://obsidian.md/) adds functionality to Martin Schenck's excellent [Obsidian Tasks](https://github.com/schemar/obsidian-tasks) plugin.
 
 **Tasks** supports recurring tasks:  when **Tasks** is used to mark such a task as having been completed, it creates the next instance of that task and inserts it in a new line immediately above the just-completed instance.
 
@@ -40,7 +40,7 @@ By default, **packrat** appends completed recurring tasks that you want to archi
 
 ## Installation
 
-**packrat** has not yet been reviewed and accepted as a Community Plugin.  
+**packrat** has not yet been reviewed and accepted as a Community Plugin.
 
 Until it is (*if* it ever is:  because I don't really know Typescript/Javascript, I pretty much hacked this together -- it probably doesn't meet code quality standards, and I may not be capable of doing much about that), this plugin can be installed manually as follows:
 
