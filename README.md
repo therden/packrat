@@ -1,73 +1,46 @@
-## Obsidian Sample Plugin
+# **PaCkRaT** 🐀
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+![](./packrat.gif)
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+This plugin for [Obsidian.md](https://obsidian.md/) adds functionality to Martin Schenk's excellent [Obsidian Tasks](https://github.com/schemar/obsidian-tasks) plugin.
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+Tasks supports recurring tasks:  when Tasks is used to mark such a task as having been completed, it creates the next instance of that task and inserts it in a new line immediately above the just-completed instance.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+## The problem
 
-### First time developing plugins?
+While this default behavior is "alright" completed instances of recurring tasks tend to accumulate and clutter up the note file in which they originate.
 
-Quick starting guide for new plugin devs:
+My completed recurring tasks fall into three categories:
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+1. those that I want to move to the bottom of their note file
+2. those that I want to archive within a separate note file
+3. those that I don't need or want to keeof text p at all
 
-### Releasing new releases
+## The solution
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+With a markdown note file open in **Obsidian**, select "Packrat:  Process completed recurring Tasks within the active note" from the *Command Palette*. **packrat** will scan the file for completed instances of recurring tasks and on each based upon any trigger value that it contains.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Trigger values and archive file name and location
 
-### Adding your plugin to the community plugin list
+By default the trigger for each **packrat** action takes the form of an html comment. (This reflects my personal preference to avoid clutter in Preview mode and in the Tag pane.)
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+| Default triggers | Action on completed recurring task instance     |
+|------------------|------------------------------------------------ |
+| %%done_end%%     | Move task to the bottom of the active note file |
+| %%done_log%%     | Append task to designated archive file          |
+| %%done_del%%     | Delete task                                     |
 
-### How to use
+However, the trigger values can be changed in **packrat**'s settings -- to #tags, or @values, or any other text string (including Unicode characters) supported by **Obsidian**.
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+By default, **packrat** appends tasks to a file named `archive.md` in the root directory of the vault -- it will create the file if it doesn't already exist.  Both the location and name of this "archive file" can be changed in **packrat**'s settings; the only requirement is that the file have an ".md" extension.
 
-### Manually installing the plugin
+### Installation
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+**packrat** has not yet been reviewed and accepted as a Community Plugin.  
 
-### Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+Until it is (*if* it ever is -- because I don't really know Typescript/Javascript, I pretty much hacked this together -- it may not meet code quality standards, and I may not be capable of changing that), **packrat** can be installed manually as follows:
 
-
-### API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+1. Create the following subidirectory of your **Obsidian** vault: `.obsidian/plugins/packrat/`
+2. From this repo, copy `main.js`, `styles.css`, `manifest.json` to that subdirectory
+3. Within **Obsidian**, open your vault, go to Settings | Community Plugins; and in the 'Installed Plugins' section, click the *Reload Plugins* icon.
+4. Enable **packrat** (optionally changing its default settings.)

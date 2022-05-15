@@ -12,7 +12,6 @@ esbuild.config.mjs
 package-lock.json
 tsconfig.json
 version-bump.mjs
-versions.json
 
 # vscode
 .vscode 

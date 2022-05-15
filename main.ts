@@ -152,7 +152,7 @@ class PackratSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl('h2', { text: 'Done Gone plugin settings' });
+		containerEl.createEl('h2', { text: 'Packrat plugin settings' });
 
 		new Setting(containerEl)
 			.setName('Deletion signifier')
