@@ -12,11 +12,11 @@ While this default behavior is "alright" completed instances of recurring tasks 
 
 My completed recurring tasks fall into three categories:
 
-1. those that I want to move to the bottom of their note file
-2. those that I want to archive within a separate note file
-3. those that I don't need or want to need to keep at all
+1. those which I want moved to the bottom of their note file
+2. those which I want archived (appended to a separate note file)
+3. those which I want deleted
 
-## The solution
+## The solution -- use **Packrat**
 
 With a markdown note file open in **Obsidian**, select "Packrat:  Process completed recurring Tasks within the active note" from the *Command Palette*.
 
