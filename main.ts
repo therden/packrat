@@ -1,8 +1,4 @@
-// import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { App, Editor, TFile, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, finishRenderMath } from 'obsidian';
-import { test } from 'scratch';
-
-// Remember to rename these classes and interfaces!
 
 export interface PackratSettings {
 	deletion_signifier: string;
@@ -28,19 +24,16 @@ export default class PackratPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'tasks-run-packrat',
-			name: 'Process completed recurring Tasks in active note',
+			name: 'Process completed recurring Tasks in the active note',
 
 			checkCallback: (checking: boolean) => {
 				// Conditions to check
 				// Packrat only works on an open markdown (.md) note file
 				const { workspace } = this.app;
-				// const activeView = workspace.getActiveViewOfType(MarkdownView);
 				const activeFile = workspace.getActiveFile();
 				if (!activeFile || activeFile.extension !== "md") {
 				} else {
 					if (!checking) {
-						// new Notice('Packrat plugin is Go!');
-						// this.averageFileLength();  // test example
 						this.ProcessCompletedRecurringTasks(activeFile);
 					}
 					// This command will only show up in Command Palette when the check function returns true
@@ -68,61 +61,66 @@ export default class PackratPlugin extends Plugin {
 	async ProcessCompletedRecurringTasks(activeFile): Promise<void> {
 		const { vault } = this.app;
 
+		const rruleSignifier = "🔁".normalize();
+		// const deleteSignifier = "%%done_del%%";
+		// const archiveSignifier = "%%done_log%%";
+		// const bottomSignifier = "%%done_move%%";
+		// const archiveFilename = "archive.md";
+		const deleteSignifier = this.settings.deletion_signifier;
+		const archiveSignifier = this.settings.archive_signifier;
+		const bottomSignifier = this.settings.bottom_signifier;
+		const archiveFilename = this.settings.archive_filepath;
+
 		let deletedTaskCount = 0;
 		let movedTaskCount = 0;
 		let archivedTaskCount = 0;
 		let thisLine = "";
 		let writebackLines = [];
 		let appendLines = [];
-		let archiveLines = "";
+		let archiveLines = [];
 		let results = [];
 
 		let fileContents = await vault.read(activeFile);
 		fileContents = fileContents.split("\n");
-		const rruleSignifier = "🔁".normalize()
-		const deleteSignifier = "%%done_del%%"
-		const archiveSignifier = "%%done_log%%"
-		const bottomSignifier = "%%done_move%%"
-		// new Notice(fileContents[0, 2, 4]);
 
 		for (let i = 0; i < fileContents.length; i++) {
 			thisLine = fileContents[i];
 			let firstFive = thisLine.substring(0, 5).toUpperCase()
 			// test if this is a completed task
 			if (firstFive == "- [X]") {
-				// new Notice("completed: " + thisLine)
 				// test if line includes Tasks' recurrence signifier 🔁
 				if (0 < thisLine.indexOf(rruleSignifier)) {
-					// var msg = ("completed and recurring: " + thisLine);
-					// console.log(msg);
-					// new Notice(msg);
 					// test for 'delete' signifier
 					if (0 < thisLine.indexOf(deleteSignifier)) {
 						deletedTaskCount += 1;
-						var msg = ("Delete " + thisLine);
-						console.log(msg);
+						continue;
+						// var msg = ("Delete " + thisLine);
+						// console.log(msg);
 					}
 					// test for 'archive' signifier
 					if (0 < thisLine.indexOf(archiveSignifier)) {
-						archiveLines = archiveLines.concat(thisLine);
+						archiveLines.push(thisLine);
 						archivedTaskCount += 1;
-						var msg = ("Archive " + thisLine);
-						console.log(msg);
+						continue;
+						// var msg = ("Archive " + thisLine);
+						// console.log(msg);
 					}
 					// test for 'move' signifier
 					if (0 < thisLine.indexOf(bottomSignifier)) {
 						appendLines.push(thisLine);
 						movedTaskCount += 1;
-						var msg = ("Move " + thisLine);
-						console.log(msg);
+						continue;
+						// var msg = ("Move " + thisLine);
+						// console.log(msg);
 					}
+					// no matching signifier
+					writebackLines.push(thisLine);
 				}
 			} else {
 				writebackLines.push(thisLine);
 			}
 		}
 
-		const archiveFilename = "archive.md";
 		const archiveFile =
 			vault.getAbstractFileByPath(archiveFilename) ||
 			(await vault.create(archiveFilename, ""));
@@ -131,13 +129,11 @@ export default class PackratPlugin extends Plugin {
 			new Notice(`${archiveFilename} is not a valid markdown file`);
 		} else {
 			let archiveFileContents = await vault.read(archiveFile);
-			// let archiveFileContents = archiveFileContents.split("\n");
+			archiveFileContents = archiveFileContents.split("\n");
 			archiveFileContents = archiveFileContents.concat(archiveLines);
-			// vault.modify(archiveFile, archiveFileContents.join("\n"));
-			vault.modify(archiveFile, archiveFileContents);
+			vault.modify(archiveFile, archiveFileContents.join("\n"));
 		}
 
-		// appendLines.push("Line to add to bottom of file -- testing only");
 		results = writebackLines.concat(appendLines);
 		vault.modify(activeFile, results.join("\n"));
 
