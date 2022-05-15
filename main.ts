@@ -74,7 +74,7 @@ export default class PackratPlugin extends Plugin {
 		let thisLine = "";
 		let writebackLines = [];
 		let appendLines = [];
-		let archiveLines = [];
+		let archiveLines = "";
 		let results = [];
 
 		let fileContents = await vault.read(activeFile);
@@ -104,7 +104,7 @@ export default class PackratPlugin extends Plugin {
 					}
 					// test for 'archive' signifier
 					if (0 < thisLine.indexOf(archiveSignifier)) {
-						archiveLines.push(thisLine);
+						archiveLines = archiveLines.concat(thisLine);
 						archivedTaskCount += 1;
 						var msg = ("Archive " + thisLine);
 						console.log(msg);
@@ -122,14 +122,20 @@ export default class PackratPlugin extends Plugin {
 			}
 		}
 
-		const archiveFile = "./archive.md"
-		// if () {
+		const archiveFilename = "archive.md";
+		const archiveFile =
+			vault.getAbstractFileByPath(archiveFilename) ||
+			(await vault.create(archiveFilename, ""));
 
-		// }
-		// let archiveFileContents = await vault.read(archiveFile);
-		// // let archiveFileContents = archiveFileContents.split("\n");
-		// archiveFileContents = archiveFileContents.concat(archiveLines);
-		// vault.modify(archiveFile, archiveFileContents.join("\n"));
+		if (!(archiveFile instanceof TFile)) {
+			new Notice(`${archiveFilename} is not a valid markdown file`);
+		} else {
+			let archiveFileContents = await vault.read(archiveFile);
+			// let archiveFileContents = archiveFileContents.split("\n");
+			archiveFileContents = archiveFileContents.concat(archiveLines);
+			// vault.modify(archiveFile, archiveFileContents.join("\n"));
+			vault.modify(archiveFile, archiveFileContents);
+		}
 
 		// appendLines.push("Line to add to bottom of file -- testing only");
 		results = writebackLines.concat(appendLines);
