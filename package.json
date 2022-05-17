@@ -1,6 +1,6 @@
 {
 	"name": "Packrat Plugin",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"description": "Process completed recurring Tasks",
 	"main": "main.js",
 	"scripts": {
