@@ -1,16 +1,16 @@
-import { App, TFile, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
 
 export interface PackratSettings {
-	deletion_signifier: string;
-	bottom_signifier: string;
-	archive_signifier: string;
+	deletion_trigger: string;
+	bottom_trigger: string;
+	archive_trigger: string;
 	archive_filepath: string;
 }
 
 export const DEFAULT_SETTINGS: PackratSettings = {
-	deletion_signifier: '%%done_del%%',
-	bottom_signifier: '%%done_end%%',
-	archive_signifier: '%%done_log%%',
+	deletion_trigger: '%%done_del%%',
+	bottom_trigger: '%%done_end%%',
+	archive_trigger: '%%done_log%%',
 	archive_filepath: 'archive.md',
 }
 
@@ -22,25 +22,25 @@ export default class PackratPlugin extends Plugin {
 
 		await this.loadSettings();
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new PackratSettingTab(this.app, this));
 
-		// This adds a Command to the Command Palette				
-		this.addCommand({
-			id: 'tasks-run-packrat',
+		this.addCommand({  // (to the Command Palette)
+			id: 'run',
 			name: 'Process completed recurring Tasks within the active note',
 
 			checkCallback: (checking: boolean) => {
 				// Packrat only works on an open markdown (.md) note file
 				const { workspace } = this.app;
 				const activeFile = workspace.getActiveFile();
-				if (!activeFile || activeFile.extension !== "md") {
-				} else {
-					if (!checking) {
-						this.ProcessCompletedRecurringTasks(activeFile);
+				// Include in Command Palette only when function returns true
+				if (activeFile && activeFile.extension == "md") {
+					if (checking) {
+						return true;
 					}
-					// Command Palette will only display this command when the check function returns true
-					return true;
+					// Actually execute command
+					this.ProcessCompletedRecurringTasks(activeFile);
+				} else {
+					return false;
 				}
 			}
 		});
@@ -59,89 +59,90 @@ export default class PackratPlugin extends Plugin {
 	}
 
 	async ProcessCompletedRecurringTasks(activeFile): Promise<void> {
-		const { vault } = this.app;
 
-		const rruleSignifier = "🔁".normalize();
-		const deleteSignifier = this.settings.deletion_signifier;
-		const archiveSignifier = this.settings.archive_signifier;
-		const bottomSignifier = this.settings.bottom_signifier;
-		const archiveFilename = this.settings.archive_filepath;
+		try {
+			const { vault } = this.app;
+			const rruleSignifier = "🔁".normalize();
+			const deleteTrigger = this.settings.deletion_trigger;
+			const archiveTrigger = this.settings.archive_trigger;
+			const bottomTrigger = this.settings.bottom_trigger;
+			const archiveFilename = this.settings.archive_filepath;
+			const archiveFile =
+				(vault.getAbstractFileByPath(archiveFilename)) ||
+				(await vault.create(archiveFilename, ""));
 
-		let deletedTaskCount = 0;
-		let movedTaskCount = 0;
-		let archivedTaskCount = 0;
-		let thisLine = "";
-		let writebackLines = [];
-		let appendLines = [];
-		let archiveLines = [];
-		let results = [];
+			let deletedTaskCount = 0;
+			let movedTaskCount = 0;
+			let archivedTaskCount = 0;
+			let thisLine = "";
+			let writebackLines = [];
+			let appendLines = [];
+			let archiveLines = [];
+			let results = [];
 
-		let fileContents = await vault.read(activeFile);
-		fileContents = fileContents.split("\n");
+			let fileContents = await vault.read(activeFile);
+			fileContents = fileContents.split("\n");
 
-		for (let i = 0; i < fileContents.length; i++) {
-			thisLine = fileContents[i];
-			let firstFive = thisLine.substring(0, 5).toUpperCase()
-			// test if this is a completed task
-			if (firstFive == "- [X]") {
-				// test if line includes Tasks' recurrence signifier 🔁
-				if (0 < thisLine.indexOf(rruleSignifier)) {
-					// test for 'delete' signifier
-					if (0 < thisLine.indexOf(deleteSignifier)) {
+			for (let i = 0; i < fileContents.length; i++) {
+				thisLine = fileContents[i];
+				let firstFive = thisLine.substring(0, 5).toUpperCase()
+				// test if this is a completed instance of recurring Task
+				if (firstFive === "- [X]" && thisLine.indexOf(rruleSignifier) != -1) {
+					// test for 'delete' trigger
+					if (0 < thisLine.indexOf(deleteTrigger)) {
 						deletedTaskCount += 1;
 						continue;
 					}
-					// test for 'archive' signifier
-					if (0 < thisLine.indexOf(archiveSignifier)) {
+					// test for 'archive' trigger
+					if (0 < thisLine.indexOf(archiveTrigger)) {
 						archiveLines.push(thisLine);
 						archivedTaskCount += 1;
 						continue;
 					}
-					// test for 'move' signifier
-					if (0 < thisLine.indexOf(bottomSignifier)) {
+					// test for 'move' trigger
+					if (0 < thisLine.indexOf(bottomTrigger)) {
 						appendLines.push(thisLine);
 						movedTaskCount += 1;
 						continue;
 					}
-					// no matching signifier
+					// completed recurring Task with no Packrat triggers
 					writebackLines.push(thisLine);
 				}
-			} else {
-				writebackLines.push(thisLine);
+				else {
+					// not a completed recurring Task
+					writebackLines.push(thisLine);
+				}
 			}
+
+			if (archivedTaskCount > 0) { // otherwise needn't modify archiveFile
+				let archiveFileContents = await vault.read(archiveFile);
+				archiveFileContents = archiveFileContents.split("\n");
+				archiveFileContents = archiveFileContents.concat(archiveLines);
+				vault.modify(archiveFile, archiveFileContents.join("\n"));
+			}
+
+			// rewrite active Note file with designated Tasks at bottom and Deleted and Archived tasks removed
+			results = writebackLines.concat(appendLines);
+			vault.modify(activeFile, results.join("\n"));
+			var tdMsg = `${deletedTaskCount} tasks deleted\n`;
+			var tmMsg = `${movedTaskCount} tasks moved to end of note\n`;
+			var taMsg = `${archivedTaskCount} tasks archived\n`;
+			const noticeText = tdMsg + tmMsg + taMsg;
+			new Notice(noticeText);
+		} catch (err) {
+			new Notice(err);
+			console.log(err);
+			return;
 		}
-
-		// write designated Tasks to archive file
-		const archiveFile =
-			vault.getAbstractFileByPath(archiveFilename) ||
-			(await vault.create(archiveFilename, ""));
-
-		if (!(archiveFile instanceof TFile)) {
-			new Notice(`${archiveFilename} is not a valid markdown file`);
-		} else {
-			let archiveFileContents = await vault.read(archiveFile);
-			archiveFileContents = archiveFileContents.split("\n");
-			archiveFileContents = archiveFileContents.concat(archiveLines);
-			vault.modify(archiveFile, archiveFileContents.join("\n"));
-		}
-
-		// rewrite active Note file with designated Tasks at bottom and Deleted and Archived tasks removed
-		results = writebackLines.concat(appendLines);
-		vault.modify(activeFile, results.join("\n"));
-		var tdMsg = `${deletedTaskCount} tasks deleted\n`;
-		var tmMsg = `${movedTaskCount} tasks moved to end of note\n`;
-		var taMsg = `${archivedTaskCount} tasks archived\n`;
-		const noticeText = tdMsg + tmMsg + taMsg;
-		new Notice(noticeText);
 	}
 }
 
 class PackratSettingTab extends PluginSettingTab {
 	plugin: PackratPlugin;
 
-	public defaultDeletionsignifier = "%%done_del%%";
-	public defaultBottomsignifier = "%%done_move%%";
-	public defaultArchivesignifier = "%%done_log%%";
+	public defaultDeletionTrigger = "%%done_del%%";
+	public defaultBottomTrigger = "%%done_move%%";
+	public defaultArchiveTrigger = "%%done_log%%";
 	public defaultArchiveFilepath = "logfile.md";
 
 	constructor(app: App, plugin: PackratPlugin) {
@@ -155,38 +156,38 @@ class PackratSettingTab extends PluginSettingTab {
 		containerEl.createEl('h2', { text: 'Packrat plugin settings' });
 
 		new Setting(containerEl)
-			.setName('Deletion signifier')
+			.setName('Deletion trigger')
 			.setDesc('Text to trigger deletion of completed recurring Task instance')
 			.addText(text => text
-				.setPlaceholder(this.defaultDeletionsignifier)
-				.setValue(this.plugin.settings.deletion_signifier)
+				.setPlaceholder(this.defaultDeletionTrigger)
+				.setValue(this.plugin.settings.deletion_trigger)
 				.onChange(async (value) => {
-					console.log('deletion_signifier: ' + value);
-					this.plugin.settings.deletion_signifier = value;
+					console.log('deletion_trigger: ' + value);
+					this.plugin.settings.deletion_trigger = value;
 					await this.plugin.saveSettings();
 				}));
 
 		new Setting(containerEl)
-			.setName('"Move to end of file" signifier')
+			.setName('"Move to end of file" trigger')
 			.setDesc('Text to trigger moving completed recurring Task instance to bottom of Active note')
 			.addText(text => text
-				.setPlaceholder(this.defaultBottomsignifier)
-				.setValue(this.plugin.settings.bottom_signifier)
+				.setPlaceholder(this.defaultbottomTrigger)
+				.setValue(this.plugin.settings.bottom_trigger)
 				.onChange(async (value) => {
-					console.log('bottom_signifier: ' + value);
-					this.plugin.settings.bottom_signifier = value;
+					console.log('bottom_trigger: ' + value);
+					this.plugin.settings.bottom_trigger = value;
 					await this.plugin.saveSettings();
 				}));
 
 		new Setting(containerEl)
-			.setName('Archive signifier')
+			.setName('Archive trigger')
 			.setDesc('Text to trigger moving completed recurring Task instance to archive note')
 			.addText(text => text
-				.setPlaceholder(this.defaultArchivesignifier)
-				.setValue(this.plugin.settings.archive_signifier)
+				.setPlaceholder(this.defaultarchiveTrigger)
+				.setValue(this.plugin.settings.archive_trigger)
 				.onChange(async (value) => {
-					console.log('archive_signifier: ' + value);
-					this.plugin.settings.archive_signifier = value;
+					console.log('archive_trigger: ' + value);
+					this.plugin.settings.archive_trigger = value;
 					await this.plugin.saveSettings();
 				}));
 

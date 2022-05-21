@@ -1,7 +1,7 @@
 {
 	"name": "Packrat Plugin",
-	"version": "1.0.0",
-	"description": "Process completed recurring Tasks",
+	"version": "1.1.0",
+	"description": "Process completed recurring Tasks based on in-line triggers",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -10,7 +10,7 @@
 	},
 	"keywords": [
 		"Obsidian.md",
-		"Tasks plugin",
+		"Obsidian Tasks plugin extension",
 		"completed recurring tasks"
 	],
 	"author": "therden",
