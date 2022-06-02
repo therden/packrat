@@ -29,9 +29,9 @@ The *default* "trigger" for each **Packrat** action takes the form of an *html c
 
 | Default trigger | Action on completed recurring task instance     |
 |-----------------|------------------------------------------------ |
-| %%done_end%%    | Move task to the bottom of the active note file |
-| %%done_log%%    | Append task to designated archive file          |
-| %%done_del%%    | Delete task                                     |
+| `%%done_end%%`    | Move task to the bottom of the active note file |
+| `%%done_log%%`    | Append task to designated archive file          |
+| `%%done_del%%`    | Delete task                                     |
 
 I chose to use *comments* because they aren't displayed in **Obsidian**'s Preview mode, and also to keep them out of its *Tag* pane.
 
@@ -53,11 +53,4 @@ Both the location and name of this "archive file" can be changed in **Packrat**'
 
 ## Installation
 
-**Packrat** has not yet been reviewed and accepted as a Community Plugin.
-
-Until it is, it can be installed manually as follows:
-
-1. Create the following subidirectory of your **Obsidian** vault: `.obsidian/plugins/packrat/`
-2. From the most recent Release for the repo, copy the files `main.js`, `styles.css`, `manifest.json` to that subdirectory
-3. Within **Obsidian**, open your vault, go to Settings | Community Plugins; and in the 'Installed Plugins' section, click the *Reload Plugins* icon.
-4. Enable the **Packrat** plugin (optionally changing its default settings.)
+**Packrat** can now be installed via the Community Plugins option within Obsidian's Settings tab.
