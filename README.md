@@ -33,9 +33,9 @@ The *default* "trigger" for each **Packrat** action takes the form of an *html c
 | `%%done_log%%`    | Append task to designated archive file          |
 | `%%done_del%%`    | Delete task                                     |
 
-I chose to use *comments* because they aren't displayed in **Obsidian**'s Preview mode, and also to keep them out of its *Tag* pane.
+I chose to use *comments* because they aren't displayed in **Obsidian**'s *Preview mode* (although they are displayed in *Live Preview*), and also because I prefer to keep the *Tags* list uncluttered.
 
-However, you can change the trigger values within **Packrat**'s settings -- to #tags, or @values, or any other string (including Unicode characters) that **Obsidian** supports.
+However, you can change the trigger values within **Packrat**'s settings -- to a #tag, or an @value, or any other string (including Unicode characters) that **Obsidian** supports.
 
 ## Using **Packrat**
 
@@ -47,10 +47,60 @@ When that command is issued, **Packrat** will scan the file for completed instan
 
 ## Default 'archive file'
 
-By default, **Packrat** appends completed recurring tasks that you want to archive to a file named `archive.md` located in the root directory of the vault.  It will create the file if it doesn't already exist.  
+By default, **Packrat** appends completed recurring tasks that you want to archive to a file named `archive.md` located in the root directory of the vault.  It will create the file if it doesn't already exist.
 
 Both the location and name of this "archive file" can be changed in **Packrat**'s settings; the only requirements are that the filepath must exist and the filename must have an ".md" extension.
 
+## I'm not sure I follow how this is supposed to work; can you give an example?
+
+Sure!
+
+The Packrat plugin acts only on **completed** checklist items in the currently active note when those feature both
+
+- an [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks)-style **recurrence rule**, and
+- one or more of the **triggers** defined in the plug-in's *Settings*.
+
+As an example, assume that the following represents the entire contents of a note file.
+
+```
+# Example checklist
+- [ ] incomplete *non*-recurring task, with deletion trigger %%done_del%%
+- [x] completed *non*-recurring task, with deletion trigger %%done_del%% ✅ 2022-06-17
+- [-] cancelled, *non-recurring* task
+- [-] *cancelled* instance of a recurring task with archive trigger %%done_log%% 🔁 every day 📅 2022-06-10
+- [ ] incomplete recurring task with *no* trigger 🔁 every 2 days when done 📅 2022-06-20
+- [x] completed recurring task with *no* trigger 🔁 every 2 days when done 📅 2022-06-18 ✅ 2022-06-18
+- [ ] *incomplete* recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-20
+- [x] completed recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-17 ✅ 2022-06-17
+- [x] completed recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-13 ✅ 2022-06-14
+- [ ] *incomplete* recurring task with archive trigger %%done_log%% 🔁 every 10 days 📅 2022-06-28
+- [x] completed recurring task with archive trigger %%done_log%% 🔁 every 10 days 📅 2022-06-18 ✅ 2022-06-18
+- [ ] *incomplete* recurring taskwith delete trigger %%done_del%%  🔁 every week on Wednesday 📅 2022-06-22
+- [x] completed recurring task with delete trigger %%done_del%% 🔁 every week on Wednesday 📅 2022-06-15 ✅ 2022-06-15
+```
+
+If the command `Packrat: Process completed recurring Tasks within the active note` were run with that note active, Packrat will only 'do something' with the final four completed checklist items.  The note file would then look as follows
+
+```
+# Example checklist
+- [ ] incomplete *non*-recurring task, with deletion trigger %%done_del%%
+- [x] completed *non*-recurring task, with deletion trigger %%done_del%% ✅ 2022-06-17
+- [-] cancelled, *non-recurring* task
+- [-] *cancelled* instance of a recurring task with archive trigger %%done_log%% 🔁 every day 📅 2022-06-10
+- [ ] incomplete recurring task with *no* trigger 🔁 every 2 days when done 📅 2022-06-20
+- [x] completed recurring task with *no* trigger 🔁 every 2 days when done 📅 2022-06-18 ✅ 2022-06-18
+- [ ] *incomplete* recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-20
+- [ ] *incomplete* recurring task with archive trigger %%done_log%% 🔁 every 10 days 📅 2022-06-28
+- [ ] *incomplete* recurring taskwith delete trigger %%done_del%%  🔁 every week on Wednesday 📅 2022-06-22
+
+- [x] completed recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-17 ✅ 2022-06-17
+- [x] completed recurring task with bottom trigger %%done_end%% 🔁 every 3 days when done 📅 2022-06-13 ✅ 2022-06-14
+```
+and the next line would have been moved to the bottom of the designated archive file
+```
+- [x] completed recurring task with archive trigger %%done_log%% 🔁 every 10 days 📅 2022-06-18 ✅ 2022-06-18
+```
+
 ## Installation
 
-**Packrat** can now be installed via the Community Plugins option within Obsidian's Settings tab.
+**Packrat** can now be installed via the *Community Plugins* option within **Obsidian**'s *Settings* tab.
