@@ -7,23 +7,28 @@ mp:
 
 ![](./packrat.gif)
 
-While [Obsidian.md](https://obsidian.md/) provides basic support for Markdown-style tasks contained within a vault's note files, the amazing and (for many) indispensable [Tasks](https://github.com/schemar/obsidian-tasks) plugin -- originally created by [Martin Schenck](https://github.com/schemar) and maintained by [Claire Macrae](https://github.com/claremacrae) -- considerably increases those capabilities.
+> [!NOTE]
+> As of version 1.1.1, **Packrat** supports both **Tasks** traditional emojis and Dataview-format inline fields.
 
-For example, **Tasks** supports recurrence rules:  when **Tasks** is used to mark a task that includes such a rule as having been completed, it inserts the next instance of that task in a new line either above -- or, alternatively, below -- the just-completed instance.
+While [Obsidian.md](https://obsidian.md/) provides basic support for Markdown-style tasks contained within a vault's note files, the amazing and (for many) indispensable [Tasks](https://github.com/schemar/obsidian-tasks) plugin -- originally created by [Martin Schenck](https://github.com/schemar) and now maintained by [Claire Macrae](https://github.com/claremacrae) -- considerably increases those capabilities.
+
+For example, recurrence rules can be used such that, when **Tasks** is used to mark a task that includes such a rule as having been completed, it inserts the next instance of that task in a new line either above (or, if the user prefers, below) the just-completed instance of the task.
 
 ## And what's wrong with that?
 
-The above behavior is "alright"; but *completed instances of recurring tasks* tend to accumulate in the note file in which they originate.  Items that recur every few days, or even every week, quickly begin to clutter up the note they're in.
+The above behavior is "alright"; but *completed instances of recurring tasks* will accumulate in the note file in which they originate.  If those tasks recur frequently, they'll quickly clutter up the note they're in.
 
 ## What are you gonna do about it?
 
 After some reflection, I realized that my completed recurring tasks fall into three categories:
 
-1. those that I don't care to keep -- they can be deleted
-2. those that I want to retain *within their note file of origin*, but relocated to the end/bottom
-3. those that I want to move to a separate archival note file
+1. those which I don't care to retain once they're done -- they can be deleted
+2. those which I want to retain *within their note file of origin*, but relocated to the bottom of the note, out of the way of current/active material
+3. those which I want to retain, but in a separate archival note file
 
-If you include within your recurring tasks a 'trigger' that identifies which of the above actions you want to apply to your completed task instances, the command added by this **Packrat** plugin will automate those actions.
+**Packrat** adds a command (**Packrat: _Process completed recurring tasks within the active note_**) to your Obsidian vault.  When run, this commands executes the above actions on your current active note file, tidying up  completed instances of recurring tasks.  
+
+All that's required is the addition, within each recurring task on which you want it to act, of a 'trigger' -- a string of characters that identifies which action you want to apply to your completed task instances, the command added by this **Packrat** plugin will automate those actions.
 
 ## Default "triggers"
 
@@ -31,13 +36,13 @@ The *default* "trigger" for each **Packrat** action takes the form of an *html c
 
 | Default trigger | Action on completed recurring task instance     |
 |-----------------|------------------------------------------------ |
-| `%%done_end%%`    | Move task to the bottom of the active note file |
-| `%%done_log%%`    | Append task to designated archive file          |
-| `%%done_del%%`    | Delete task                                     |
+| `%%done_end%%`  | Move task to the bottom of the active note file |
+| `%%done_log%%`  | Append task to designated archive file          |
+| `%%done_del%%`  | Delete task                                     |
 
-I chose to use *comments* because they aren't displayed in **Obsidian**'s *Preview mode* (although they are displayed in *Live Preview*), and also because I prefer to keep the *Tags* list uncluttered.
+I chose to use *comments* because they aren't displayed in **Obsidian**'s *Preview mode* (although they *are* displayed in *Live Preview*), and because I prefer to keep the *Tags* list uncluttered.
 
-However, you can change the "trigger" value of each supported Action within **Packrat**'s settings -- to a #tag, an emoji, an @value, or any other string (including Unicode characters) that is supported by **Obsidian** and your operating system.
+However, you can change the "trigger" value of each supported Action within **Packrat**'s settings -- to a `#tag`, an emoji, an @value, or any other string (including Unicode characters) that is supported by **Obsidian** and your operating system.
 
 ## Using **Packrat**
 
@@ -47,11 +52,14 @@ Assuming that you have a markdown file open as your active note, invoke Obsidian
 
 When that command is issued, **Packrat** will scan the file for completed instances of recurring tasks and act on each according to the trigger value(s) it contains.
 
+> [!TIP] 
+> You may want to open the **Command Palette** Core plugin and to "pin" this command to the top of the list -- or assign a Hotkey to run it
+
 ## Default 'archive file'
 
-By default, **Packrat** appends completed recurring tasks that you want to archive to a file named `archive.md` located in the root directory of the vault.  If the file doesn't already exist, it will be created.
+By default, **Packrat** appends completed recurring tasks that you want to archive to a file named `archive.md` located in the root directory of the vault.  If the file doesn't already exist when the command is run, it will be created.
 
-Both the name and location of this "archive of completed tasks" file can be changed in **Packrat**'s settings; the only requirements are that the file path must exist and the filename must have an ".md" extension.
+Both the name and location of this "archive of completed tasks" file can be changed in **Packrat**'s settings.  The only requirements are that the file path **must** exist and the any alternate filename entered in Settings **must** include the ".md" extension.
 
 ## I'm not sure I follow how this is supposed to work; can you give an example?
 
@@ -108,5 +116,6 @@ would have been moved to the bottom of the designated archive file, and the four
 
 **Packrat** can now be installed via the *Community Plugins* option within **Obsidian**'s *Settings* tab.
 
-| :exclamation:  _**Don't**_ install **Packrat** unless you are using the **Tasks** plugin  :exclamation: |
-|---------------------------------------------------------------------------------------------------|
+|> [!WARNING]
+ > _**Don't**_ install **Packrat** unless you are using the **Tasks** plugin
+
