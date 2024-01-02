@@ -86,8 +86,11 @@ export default class PackratPlugin extends Plugin {
 
 			for (let i = 0; i < fileContents.length; i++) {
 				thisLine = fileContents[i];
-				let firstFive = thisLine.substring(0, 5).toUpperCase()
-				// test if this is a completed instance of recurring Task
+				let firstFive = thisLine.trim().substring(0, 5).toUpperCase()
+				// firstFive = firstFive.substring(0, 5)
+				// firstFive = firstFive.toUpperCase()
+				// console.log(firstFive)
+				// test whether this is a completed instance of recurring Task
 				if (firstFive === "- [X]" && (thisLine.indexOf(rruleSignifier) != -1 || thisLine.indexOf(dv_rruleSignifier) != -1)) {
 					// test for 'delete' trigger
 					if (0 < thisLine.indexOf(deleteTrigger)) {
