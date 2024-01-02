@@ -63,6 +63,7 @@ export default class PackratPlugin extends Plugin {
 		try {
 			const { vault } = this.app;
 			const rruleSignifier = "🔁".normalize();
+			const dv_rruleSignifier = "[repeat::";
 			const deleteTrigger = this.settings.deletion_trigger;
 			const archiveTrigger = this.settings.archive_trigger;
 			const bottomTrigger = this.settings.bottom_trigger;
@@ -87,7 +88,7 @@ export default class PackratPlugin extends Plugin {
 				thisLine = fileContents[i];
 				let firstFive = thisLine.substring(0, 5).toUpperCase()
 				// test if this is a completed instance of recurring Task
-				if (firstFive === "- [X]" && thisLine.indexOf(rruleSignifier) != -1) {
+				if (firstFive === "- [X]" && (thisLine.indexOf(rruleSignifier) != -1 || thisLine.indexOf(dv_rruleSignifier) != -1)) {
 					// test for 'delete' trigger
 					if (0 < thisLine.indexOf(deleteTrigger)) {
 						deletedTaskCount += 1;

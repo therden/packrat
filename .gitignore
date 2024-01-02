@@ -4,9 +4,9 @@ ignore
 # other cruft
 .editorconfig
 .eslintignore
-.eslintrc
+.eslintrc.js
 .npmrc
-esbuild.config.mjs
+# esbuild.config.mjs
 package-lock.json
 tsconfig.json
 version-bump.mjs
