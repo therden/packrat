@@ -1,8 +1,3 @@
----
-created: 2023-12-29T14:54
-modified: 2023-12-29T15:47
-mp: 
----
 # **Packrat** 🐀
 
 ![](./packrat.gif)
