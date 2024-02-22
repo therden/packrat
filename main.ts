@@ -58,7 +58,7 @@ export default class PackratPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async ProcessCompletedRecurringTasks(activeFile): Promise<void> {
+	async ProcessCompletedRecurringTasks(activeFile: TFile): Promise<void> {
 
 		try {
 			const { vault } = this.app;
@@ -71,22 +71,28 @@ export default class PackratPlugin extends Plugin {
 			const archiveFile =
 				(vault.getAbstractFileByPath(archiveFilename)) ||
 				(await vault.create(archiveFilename, ""));
+			if (!(archiveFile instanceof TFile)) {
+				const msg = "Problem with Archive filename. (Maybe a directory?"
+				new Notice(msg);
+				console.log(msg);
+				return;
+			}
 
 			let deletedTaskCount = 0;
 			let movedTaskCount = 0;
 			let archivedTaskCount = 0;
 			let thisLine = "";
-			let writebackLines = [];
-			let appendLines = [];
-			let archiveLines = [];
-			let results = [];
+			const writeBackLines:string[] = [];
+			const appendLines:string[] = [];
+			const archiveLines:string[] = [];
+			// let results = [];
 
-			let fileContents = await vault.read(activeFile);
-			fileContents = fileContents.split("\n");
+			const fileContentsString = await vault.read(activeFile);
+			const fileContentsArray = fileContentsString.split("\n");
 
-			for (let i = 0; i < fileContents.length; i++) {
-				thisLine = fileContents[i];
-				let firstFive = thisLine.trim().substring(0, 5).toUpperCase()
+			for (let i = 0; i < fileContentsArray.length; i++) {
+				thisLine = fileContentsArray[i];
+				const firstFive = thisLine.trim().substring(0, 5).toUpperCase()
 				// firstFive = firstFive.substring(0, 5)
 				// firstFive = firstFive.toUpperCase()
 				// console.log(firstFive)
@@ -110,27 +116,27 @@ export default class PackratPlugin extends Plugin {
 						continue;
 					}
 					// completed recurring Task with no Packrat triggers
-					writebackLines.push(thisLine);
+					writeBackLines.push(thisLine);
 				}
 				else {
 					// not a completed recurring Task
-					writebackLines.push(thisLine);
+					writeBackLines.push(thisLine);
 				}
 			}
 
 			if (archivedTaskCount > 0) { // otherwise needn't modify archiveFile
-				let archiveFileContents = await vault.read(archiveFile);
-				archiveFileContents = archiveFileContents.split("\n");
-				archiveFileContents = archiveFileContents.concat(archiveLines);
-				vault.modify(archiveFile, archiveFileContents.join("\n"));
+				const archiveFileContentsString = await vault.read(archiveFile);
+				let archiveFileContentsArray = archiveFileContentsString.split("\n");
+				archiveFileContentsArray = archiveFileContentsArray.concat(archiveLines);
+				await vault.modify(archiveFile, archiveFileContentsArray.join("\n"));
 			}
 
 			// rewrite active Note file with designated Tasks at bottom and Deleted and Archived tasks removed
-			results = writebackLines.concat(appendLines);
-			vault.modify(activeFile, results.join("\n"));
-			var tdMsg = `${deletedTaskCount} tasks deleted\n`;
-			var tmMsg = `${movedTaskCount} tasks moved to end of note\n`;
-			var taMsg = `${archivedTaskCount} tasks archived\n`;
+			const results = writeBackLines.concat(appendLines);
+			await vault.modify(activeFile, results.join("\n"));
+			const tdMsg = `${deletedTaskCount} tasks deleted\n`;
+			const tmMsg = `${movedTaskCount} tasks moved to end of note\n`;
+			const taMsg = `${archivedTaskCount} tasks archived\n`;
 			const noticeText = tdMsg + tmMsg + taMsg;
 			new Notice(noticeText);
 		} catch (err) {
@@ -175,7 +181,7 @@ class PackratSettingTab extends PluginSettingTab {
 			.setName('"Move to end of file" trigger')
 			.setDesc('Text to trigger moving completed recurring Task instance to bottom of Active note')
 			.addText(text => text
-				.setPlaceholder(this.defaultbottomTrigger)
+				.setPlaceholder(this.defaultBottomTrigger)
 				.setValue(this.plugin.settings.bottom_trigger)
 				.onChange(async (value) => {
 					console.log('bottom_trigger: ' + value);
@@ -187,7 +193,7 @@ class PackratSettingTab extends PluginSettingTab {
 			.setName('Archive trigger')
 			.setDesc('Text to trigger moving completed recurring Task instance to archive note')
 			.addText(text => text
-				.setPlaceholder(this.defaultarchiveTrigger)
+				.setPlaceholder(this.defaultArchiveTrigger)
 				.setValue(this.plugin.settings.archive_trigger)
 				.onChange(async (value) => {
 					console.log('archive_trigger: ' + value);
