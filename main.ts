@@ -85,7 +85,7 @@ export default class PackratPlugin extends Plugin {
 			const writeBackLines:string[] = [];
 			const appendLines:string[] = [];
 			const archiveLines:string[] = [];
-Del
+
 			const fileContentsString = await vault.read(activeFile);
 			const fileContentsArray = fileContentsString.split("\n");
 
