@@ -85,17 +85,13 @@ export default class PackratPlugin extends Plugin {
 			const writeBackLines:string[] = [];
 			const appendLines:string[] = [];
 			const archiveLines:string[] = [];
-			// let results = [];
-
+Del
 			const fileContentsString = await vault.read(activeFile);
 			const fileContentsArray = fileContentsString.split("\n");
 
 			for (let i = 0; i < fileContentsArray.length; i++) {
 				thisLine = fileContentsArray[i];
 				const firstFive = thisLine.trim().substring(0, 5).toUpperCase()
-				// firstFive = firstFive.substring(0, 5)
-				// firstFive = firstFive.toUpperCase()
-				// console.log(firstFive)
 				// test whether this is a completed instance of recurring Task
 				if (firstFive === "- [X]" && (thisLine.indexOf(rruleSignifier) != -1 || thisLine.indexOf(dv_rruleSignifier) != -1)) {
 					// test for 'delete' trigger
